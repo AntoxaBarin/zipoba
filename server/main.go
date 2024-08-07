@@ -43,55 +43,55 @@ func archive(filename string) error {
 	return nil
 }
 
+func processFile(ctx *gin.Context) {
+	// Extract file from request
+	file, formErr := ctx.FormFile("file")
+	if formErr != nil {
+		ctx.String(http.StatusBadRequest, fmt.Sprintf("File not provided."))
+		return
+	}
+	log.Println("Received file: " + file.Filename)
+
+	// Save file
+	out, fileErr := os.Create(file.Filename)
+	if fileErr != nil {
+		ctx.String(http.StatusInternalServerError, fmt.Sprintf("Something went wrong."))
+		return
+	}
+	defer out.Close()
+
+	src, err := file.Open()
+	if err != nil {
+		ctx.String(http.StatusInternalServerError, "Something went wrong.")
+		return
+	}
+	defer src.Close()
+
+	if _, err := io.Copy(out, src); err != nil {
+		ctx.String(http.StatusInternalServerError, "Something went wrong.")
+		return
+	}
+
+	// Archive file
+	archiveErr := archive(file.Filename)
+	if archiveErr != nil {
+		ctx.String(http.StatusInternalServerError, fmt.Sprintf("Something went wrong during archiving."))
+		return
+	}
+
+	ctx.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
+
+	// Upload the file to specific dst.
+	//c.SaveUploadedFile(file, dst)
+}
+
 func main() {
 	router := gin.Default()
 
 	// Set a lower memory limit for multipart forms (default is 32 MiB)
 	//router.MaxMultipartMemory = 8 << 20 // 8 MiB
 
-	router.POST("/upload", func(ctx *gin.Context) {
-		// Extract file from request
-		file, formErr := ctx.FormFile("file")
-		if formErr != nil {
-			ctx.String(http.StatusBadRequest, fmt.Sprintf("File not provided."))
-			return
-		}
-		log.Println("Received file: " + file.Filename)
-
-		// Save file
-		out, fileErr := os.Create(file.Filename)
-		if fileErr != nil {
-			ctx.String(http.StatusInternalServerError, fmt.Sprintf("Something went wrong."))
-			return
-		}
-		defer out.Close()
-
-		src, err := file.Open()
-		if err != nil {
-			ctx.String(http.StatusInternalServerError, "Something went wrong.")
-			return
-		}
-		defer src.Close()
-
-		if _, err := io.Copy(out, src); err != nil {
-			ctx.String(http.StatusInternalServerError, "Something went wrong.")
-			return
-		}
-
-		// Archive file
-		/*
-			archiveErr := archive(file.Filename)
-			if archiveErr != nil {
-				ctx.String(http.StatusInternalServerError, fmt.Sprintf("Something went wrong during archiving."))
-				return
-			}
-		*/
-		ctx.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
-
-		// Upload the file to specific dst.
-		//c.SaveUploadedFile(file, dst)
-
-	})
+	router.POST("/upload", processFile)
 
 	if router.Run(PORT) != nil {
 		log.Println("Error starting server.")
