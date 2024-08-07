@@ -1,4 +1,4 @@
-package server
+package main
 
 import (
 	"fmt"
@@ -6,6 +6,8 @@ import (
 	"log"
 	"net/http"
 )
+
+const PORT = ":8080"
 
 func main() {
 	router := gin.Default()
@@ -24,5 +26,5 @@ func main() {
 		c.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
 	})
 
-	router.Run(":8080")
+	router.Run(PORT)
 }
