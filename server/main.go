@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/mholt/archiver/v4"
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -57,12 +58,34 @@ func main() {
 		}
 		log.Println("Received file: " + file.Filename)
 
-		// Archive file
-		archiveErr := archive(file.Filename)
-		if archiveErr != nil {
-			ctx.String(http.StatusInternalServerError, fmt.Sprintf("Something went wrong during archiving."))
+		// Save file
+		out, fileErr := os.Create(file.Filename)
+		if fileErr != nil {
+			ctx.String(http.StatusInternalServerError, fmt.Sprintf("Something went wrong."))
 			return
 		}
+		defer out.Close()
+
+		src, err := file.Open()
+		if err != nil {
+			ctx.String(http.StatusInternalServerError, "Something went wrong.")
+			return
+		}
+		defer src.Close()
+
+		if _, err := io.Copy(out, src); err != nil {
+			ctx.String(http.StatusInternalServerError, "Something went wrong.")
+			return
+		}
+
+		// Archive file
+		/*
+			archiveErr := archive(file.Filename)
+			if archiveErr != nil {
+				ctx.String(http.StatusInternalServerError, fmt.Sprintf("Something went wrong during archiving."))
+				return
+			}
+		*/
 		ctx.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
 
 		// Upload the file to specific dst.
