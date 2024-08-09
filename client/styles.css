@@ -3,7 +3,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: Padauk, sans-serif;
+    font-family: Poppins, sans-serif;
 }
 
 body {
@@ -39,4 +39,21 @@ body {
 h3 {
     margin-bottom: 20px;
     font-weight: 500;
+}
+
+.drag-area .icon {
+    font-size: 50px;
+    color: #1683ff;
+}
+
+.drag-area .header {
+    font-size: 20px;
+    font-weight: 500;
+}
+
+.drag-area .button {
+    font-size: 20px;
+    font-weight: 500;
+    color: #1683ff;
+    cursor: pointer;
 }
