@@ -57,3 +57,7 @@ h3 {
     color: #1683ff;
     cursor: pointer;
 }
+
+.drag-area.active {
+    border: 2px solid #1683ff;
+}
