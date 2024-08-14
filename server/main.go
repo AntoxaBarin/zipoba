@@ -43,6 +43,13 @@ func archive(filename string) error {
 	return nil
 }
 
+func removeFile(filename string) {
+	err := os.Remove(filename)
+	if err != nil {
+		fmt.Println("FILE_REMOVING_ERROR:", err)
+	}
+}
+
 func processFile(ctx *gin.Context) {
 	// Extract file from request
 	file, formErr := ctx.FormFile("file")
@@ -53,21 +60,19 @@ func processFile(ctx *gin.Context) {
 	log.Println("Received file: " + file.Filename)
 
 	// Save file
-	out, fileErr := os.Create(file.Filename)
+	dst, fileErr := os.Create(file.Filename)
 	if fileErr != nil {
 		ctx.String(http.StatusInternalServerError, fmt.Sprintf("Something went wrong."))
 		return
 	}
-	defer out.Close()
 
 	src, err := file.Open()
 	if err != nil {
 		ctx.String(http.StatusInternalServerError, "Something went wrong.")
 		return
 	}
-	defer src.Close()
 
-	if _, err := io.Copy(out, src); err != nil {
+	if _, err := io.Copy(dst, src); err != nil {
 		ctx.String(http.StatusInternalServerError, "Something went wrong.")
 		return
 	}
@@ -78,6 +83,9 @@ func processFile(ctx *gin.Context) {
 		ctx.String(http.StatusInternalServerError, fmt.Sprintf("Something went wrong during archiving."))
 		return
 	}
+	defer removeFile(file.Filename)
+	defer src.Close()
+	defer dst.Close()
 
 	ctx.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
 
