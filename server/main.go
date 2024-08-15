@@ -12,6 +12,7 @@ import (
 )
 
 const PORT = ":8080"
+const ARCHIVE_NAME = "archive.tar.gz"
 
 func archive(filename string) error {
 	files, mapErr := archiver.FilesFromDisk(nil, map[string]string{
@@ -22,7 +23,7 @@ func archive(filename string) error {
 	}
 
 	// create the output file we'll write to
-	out, fileErr := os.Create("archive.tar.gz")
+	out, fileErr := os.Create(ARCHIVE_NAME)
 	if fileErr != nil {
 		return fileErr
 	}
@@ -59,7 +60,6 @@ func processFile(ctx *gin.Context) {
 	}
 	log.Println("Received file: " + file.Filename)
 
-	// Save file
 	dst, fileErr := os.Create(file.Filename)
 	if fileErr != nil {
 		ctx.String(http.StatusInternalServerError, fmt.Sprintf("Something went wrong."))
@@ -83,14 +83,12 @@ func processFile(ctx *gin.Context) {
 		ctx.String(http.StatusInternalServerError, fmt.Sprintf("Something went wrong during archiving."))
 		return
 	}
+	defer removeFile(ARCHIVE_NAME)
 	defer removeFile(file.Filename)
 	defer src.Close()
 	defer dst.Close()
 
 	ctx.String(http.StatusOK, fmt.Sprintf("'%s' uploaded!", file.Filename))
-
-	// Upload the file to specific dst.
-	//c.SaveUploadedFile(file, dst)
 }
 
 func main() {
