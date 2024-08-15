@@ -61,3 +61,10 @@ h3 {
 .drag-area.active {
     border: 2px solid #1683ff;
 }
+
+.site-title {
+    font-size: 36px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #1683ff;
+}
